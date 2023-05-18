@@ -120,6 +120,7 @@ public class Hiero extends JFrame {
 	Preferences prefs;
 	ColorEffect colorEffect;
 	boolean batchMode = false;
+	File hieroFileDir = new File(".");
 
 	JScrollPane appliedEffectsScroll;
 	JPanel appliedEffectsPanel;
@@ -265,8 +266,7 @@ public class Hiero extends JFrame {
 
 		File file = null;
 		if (fontFileRadio.isSelected()) {
-			file = new File(fontFileText.getText());
-			if (!file.exists() || !file.isFile()) file = null;
+			file = findFontFile(fontFileText.getText());
 		}
 
 		boolean isFreeType = freeTypeRadio.isSelected();
@@ -285,7 +285,7 @@ public class Hiero extends JFrame {
 		if (file != null) {
 			// Load from file.
 			try {
-				unicodeFont = new UnicodeFont(fontFileText.getText(), fontSize, boldCheckBox.isSelected(),
+				unicodeFont = new UnicodeFont(file.getAbsolutePath(), fontSize, boldCheckBox.isSelected(),
 					italicCheckBox.isSelected());
 			} catch (Throwable ex) {
 				ex.printStackTrace();
@@ -336,6 +336,18 @@ public class Hiero extends JFrame {
 		updateFontSelector();
 	}
 
+	private File findFontFile(String text) {
+		File file = new File(text);
+		if (file.exists()) {
+			return file;
+		}
+		file = new File(hieroFileDir.getAbsolutePath() + "/" + text);
+		if (file.exists()) {
+			return file;
+		}
+		return null;
+	}
+
 	void saveBm (File file) {
 		saveBmFontFile = file;
 	}
@@ -373,6 +385,7 @@ public class Hiero extends JFrame {
 	}
 
 	void open (File file) {
+		hieroFileDir = file.getParentFile();
 		EffectPanel[] panels = (EffectPanel[])effectPanels.toArray(new EffectPanel[effectPanels.size()]);
 		for (int i = 0; i < panels.length; i++)
 			panels[i].remove();
